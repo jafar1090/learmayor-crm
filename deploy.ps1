@@ -17,7 +17,7 @@ flutter build web --release --base-href "/learmayor-crm/"
 
 # 3. Deploy to GitHub Pages
 Write-Host "Deploying to live website..."
-flutter pub global run peanut
+flutter pub global run peanut --extra-args "--base-href=/learmayor-crm/"
 git push origin gh-pages --force
 
 Write-Host "Deployment Complete! Your site will be updated in ~60 seconds."
