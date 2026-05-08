@@ -188,6 +188,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Wake up the server early to handle cold starts
+  Future<void> warmup() async {
+    try {
+      // Just a simple GET to wake up the Render instance
+      await http.get(Uri.parse('${ApiConfig.baseUrl}/auth/verify')).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Ignore errors, we just want to trigger the server boot
+    }
+  }
+
   Future<void> logout() async {
     _token = null;
     _userName = null;

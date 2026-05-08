@@ -22,6 +22,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLogin = true;
   bool _isSuccess = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Start waking up the server as soon as the user sees the login screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().warmup();
+    });
+  }
+
   void _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
