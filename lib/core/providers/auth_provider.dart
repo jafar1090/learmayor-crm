@@ -38,12 +38,14 @@ class AuthProvider extends ChangeNotifier {
 
   // Loads session from storage
   Future<void> _loadSession() async {
-    _token = await _storage.read(key: 'jwt_token');
     final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('jwt_token');
     _userName = prefs.getString('user_name');
     _userEmail = prefs.getString('user_email');
     _profilePicUrl = prefs.getString('admin_photo');
     _isDemoUser = prefs.getBool('is_demo') ?? false;
+    
+    debugPrint('🔐 Auth: Session Loaded. Token present: ${_token != null}');
     
     if (_token != null) {
       _verifyToken();
@@ -54,15 +56,20 @@ class AuthProvider extends ChangeNotifier {
   // Verify token with backend
   Future<void> _verifyToken() async {
     try {
+      debugPrint('🌐 Auth: Verifying Token...');
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/auth/verify'),
         headers: {'Authorization': 'Bearer $_token'},
-      );
+      ).timeout(const Duration(seconds: 10));
+      
       if (response.statusCode != 200) {
+        debugPrint('⚠️ Auth: Token Invalid (Status ${response.statusCode})');
         logout();
+      } else {
+        debugPrint('✅ Auth: Token Verified');
       }
     } catch (e) {
-      // Offline or server down - keep local session for now
+      debugPrint('ℹ️ Auth: Verification skipped/failed (Offline)');
     }
   }
 
@@ -74,10 +81,13 @@ class AuthProvider extends ChangeNotifier {
     int attempts = 0;
     const int maxAttempts = 3;
     
+    debugPrint('🚀 Auth: Login Attempt Started for $email');
+    
     try {
       while (attempts < maxAttempts) {
         attempts++;
         try {
+          debugPrint('📡 Auth: Sending Request (Attempt $attempts)...');
           final response = await http.post(
             Uri.parse('${ApiConfig.baseUrl}/auth/login'),
             headers: {'Content-Type': 'application/json'},
@@ -90,22 +100,22 @@ class AuthProvider extends ChangeNotifier {
             _userName = data['name'];
             _userEmail = data['email'];
             
-            await _storage.write(key: 'jwt_token', value: _token);
+            debugPrint('💾 Auth: Saving Session to Storage...');
             final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('jwt_token', _token!);
             await prefs.setString('user_name', _userName!);
             await prefs.setString('user_email', _userEmail!);
+            
+            debugPrint('✅ Auth: Login Success!');
             return; 
           } else {
             final data = jsonDecode(response.body);
+            debugPrint('❌ Auth: Backend Rejected (Status ${response.statusCode}): ${data['error']}');
             throw Exception(data['error'] ?? 'Login failed');
           }
         } catch (e) {
-          if (attempts >= maxAttempts) {
-            if (e.toString().contains('TimeoutException')) {
-              throw Exception('Server is taking too long to wake up. Please check your connection or try again in a minute.');
-            }
-            rethrow;
-          }
+          debugPrint('⏳ Auth: Attempt $attempts failed: $e');
+          if (attempts >= maxAttempts) rethrow;
           await Future.delayed(const Duration(seconds: 2));
         }
       }
@@ -205,8 +215,8 @@ class AuthProvider extends ChangeNotifier {
     _userEmail = null;
     _isDemoUser = false;
     
-    await _storage.delete(key: 'jwt_token');
     final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
     await prefs.remove('user_name');
     await prefs.remove('user_email');
     await prefs.remove('is_demo');
