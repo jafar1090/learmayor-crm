@@ -119,73 +119,129 @@ class _InternsScreenState extends State<InternsScreen> {
   }
 
   Widget _buildHeader(List<String> departments) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
-      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(24, isMobile ? 16 : 40, 24, isMobile ? 16 : 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppTheme.border.withOpacity(0.5))),
+      ),
       child: ResponsiveWrapper(
+        alignment: Alignment.centerLeft,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Intern Directory', style: Theme.of(context).textTheme.headlineMedium),
-                    const SizedBox(height: 4),
-                    Text('Track and manage active internships', style: Theme.of(context).textTheme.bodyMedium),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Intern Directory', 
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontSize: isMobile ? 24 : null,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (!isMobile) ...[
+                        const SizedBox(height: 4),
+                        Text('Track and manage active internships', style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    ],
+                  ),
                 ),
                 IconButton(
                   onPressed: _showSortDialog,
                   icon: const Icon(Icons.tune_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppTheme.background,
+                    padding: const EdgeInsets.all(12),
+                  ),
                   tooltip: 'Sort & Filter',
                 ),
               ],
             ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
+            SizedBox(height: isMobile ? 16 : 32),
+            if (isMobile) 
+              Column(
+                children: [
+                  TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
-                      hintText: 'Search by name, college or department...',
+                      hintText: 'Search interns...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       fillColor: AppTheme.background,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: departments.map((dept) {
-                        final isSelected = _selectedDepartment == dept;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(dept),
-                            selected: isSelected,
-                            onSelected: (v) => setState(() => _selectedDepartment = dept),
-                            selectedColor: AppTheme.accent,
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : AppTheme.textMid,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: departments.map((dept) => _buildDeptChip(dept)).toList(),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: 'Search by name, college or department...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        fillColor: AppTheme.background,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: departments.map((dept) => _buildDeptChip(dept)).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeptChip(String dept) {
+    final isSelected = _selectedDepartment == dept;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 200),
+        scale: isSelected ? 1.05 : 1.0,
+        child: ChoiceChip(
+          label: Text(dept),
+          selected: isSelected,
+          onSelected: (v) => setState(() => _selectedDepartment = dept),
+          selectedColor: AppTheme.accent,
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.textMid,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: isSelected ? AppTheme.accent : AppTheme.border,
+              width: 1,
+            ),
+          ),
         ),
       ),
     );
@@ -322,25 +378,21 @@ class _InternCard extends StatelessWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, Intern intern) {
-    showDialog(
+  void _showDeleteDialog(BuildContext context, Intern intern) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Intern'),
-        content: Text('Are you sure you want to remove ${intern.name}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await context.read<InternProvider>().deleteIntern(intern.id);
-              if (context.mounted) Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
+      builder: (context) => PremiumConfirmationDialog(
+        title: 'Remove Intern?',
+        message: 'Are you sure you want to remove ${intern.name} from the internship program?',
+        confirmLabel: 'Remove',
+        confirmColor: AppTheme.error,
+        icon: Icons.person_remove_rounded,
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<InternProvider>().deleteIntern(intern.id);
+    }
   }
 }
 

@@ -172,40 +172,61 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
             children: [
               const SizedBox(height: 10),
               Center(
-                child: Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.primary.withOpacity(0.2), width: 2),
-                      ),
-                      child: CircleAvatar(
-                        radius: 65,
-                        backgroundColor: Colors.white,
-                        backgroundImage: _imageFile != null 
-                          ? (kIsWeb ? NetworkImage(_imageFile!.path) : FileImage(io.File(_imageFile!.path)) as ImageProvider)
-                          : (_existingPhotoUrl != null && !_existingPhotoUrl!.startsWith('blob:')) 
-                              ? NetworkImage(ApiConfig.getFullImageUrl(_existingPhotoUrl)) as ImageProvider 
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.primary.withOpacity(0.1), width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primary.withOpacity(0.05),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 70,
+                            backgroundColor: Colors.white,
+                            backgroundImage: _imageFile != null 
+                              ? (kIsWeb ? NetworkImage(_imageFile!.path) : FileImage(io.File(_imageFile!.path)) as ImageProvider)
+                              : (_existingPhotoUrl != null && !_existingPhotoUrl!.startsWith('blob:')) 
+                                  ? NetworkImage(ApiConfig.getFullImageUrl(_existingPhotoUrl)) as ImageProvider 
+                                  : null,
+                            child: (_imageFile == null && (_existingPhotoUrl == null || _existingPhotoUrl!.startsWith('blob:'))) 
+                              ? const Icon(Icons.person_rounded, size: 70, color: AppTheme.primary) 
                               : null,
-                        child: (_imageFile == null && (_existingPhotoUrl == null || _existingPhotoUrl!.startsWith('blob:'))) 
-                          ? const Icon(Icons.person_rounded, size: 60, color: AppTheme.primary) 
-                          : null,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 5,
-                      right: 5,
-                      child: GestureDetector(
-                        onTap: _pickImage,
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle),
-                          child: const Icon(Icons.camera_alt_rounded, size: 20, color: Colors.white),
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accent,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.accent.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.edit_rounded, size: 20, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -249,7 +270,7 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 4,
                   ),
-                  child: Text(_isEdit ? 'UPDATE PROFILE' : 'Save EMPLOYEE', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  child: Text(_isEdit ? 'Update Profile' : 'Save Employee', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
                 ),
               ),
             ],

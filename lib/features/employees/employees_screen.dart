@@ -116,81 +116,129 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
   }
 
   Widget _buildHeader(List<String> departments) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
-      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(24, isMobile ? 16 : 40, 24, isMobile ? 16 : 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppTheme.border.withOpacity(0.5))),
+      ),
       child: ResponsiveWrapper(
+        alignment: Alignment.centerLeft,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Employees', style: Theme.of(context).textTheme.headlineMedium),
-                    const SizedBox(height: 4),
-                    Text('Manage your team and their roles', style: Theme.of(context).textTheme.bodyMedium),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Employees', 
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontSize: isMobile ? 24 : null,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (!isMobile) ...[
+                        const SizedBox(height: 4),
+                        Text('Manage your team and their roles', style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    ],
+                  ),
                 ),
                 IconButton(
                   onPressed: _showSortDialog,
-                  icon: const Icon(Icons.sort_rounded),
+                  icon: const Icon(Icons.tune_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppTheme.background,
+                    padding: const EdgeInsets.all(12),
+                  ),
                   tooltip: 'Sort Employees',
                 ),
               ],
             ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
+            SizedBox(height: isMobile ? 16 : 32),
+            if (isMobile) 
+              Column(
+                children: [
+                  TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
-                      hintText: 'Search by name, role or department...',
+                      hintText: 'Search employees...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       fillColor: AppTheme.background,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: departments.map((dept) => _buildDeptChip(dept)).toList(),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      decoration: InputDecoration(
+                        hintText: 'Search by name, role or department...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        fillColor: AppTheme.background,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: departments.map((dept) {
-                        final isSelected = _selectedDepartment == dept;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(dept),
-                            selected: isSelected,
-                            onSelected: (v) => setState(() => _selectedDepartment = dept),
-                            selectedColor: AppTheme.accent,
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : AppTheme.textMid,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: departments.map((dept) => _buildDeptChip(dept)).toList(),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeptChip(String dept) {
+    final isSelected = _selectedDepartment == dept;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 200),
+        scale: isSelected ? 1.05 : 1.0,
+        child: ChoiceChip(
+          label: Text(dept),
+          selected: isSelected,
+          onSelected: (v) => setState(() => _selectedDepartment = dept),
+          selectedColor: AppTheme.accent,
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.textMid,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: isSelected ? AppTheme.accent : AppTheme.border,
+              width: 1,
+            ),
+          ),
         ),
       ),
     );
@@ -320,25 +368,21 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, Employee employee) {
-    showDialog(
+  void _showDeleteDialog(BuildContext context, Employee employee) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Employee'),
-        content: Text('Are you sure you want to remove ${employee.name}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await context.read<EmployeeProvider>().deleteEmployee(employee.id);
-              if (context.mounted) Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
+      builder: (context) => PremiumConfirmationDialog(
+        title: 'Delete Employee?',
+        message: 'Are you sure you want to remove ${employee.name} from the system? This action cannot be undone.',
+        confirmLabel: 'Delete',
+        confirmColor: AppTheme.error,
+        icon: Icons.delete_forever_rounded,
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<EmployeeProvider>().deleteEmployee(employee.id);
+    }
   }
 }
 

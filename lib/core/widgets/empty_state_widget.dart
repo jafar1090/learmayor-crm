@@ -17,38 +17,68 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.symmetric(horizontal: 40.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 64, color: AppTheme.primary.withOpacity(0.4)),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      colors: [
+                        AppTheme.primary.withOpacity(0.08),
+                        AppTheme.primary.withOpacity(0.0),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: AppTheme.softShadow,
+                    border: Border.all(color: AppTheme.border.withOpacity(0.5)),
+                  ),
+                  child: Icon(
+                    icon, 
+                    size: 48, 
+                    color: AppTheme.primary.withOpacity(0.6),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textDark,
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textMid,
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: AppTheme.textMid,
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
-         ),
+        ),
       ),
     );
   }

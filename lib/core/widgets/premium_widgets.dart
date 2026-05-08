@@ -272,3 +272,90 @@ class PremiumImage extends StatelessWidget {
   }
 }
 
+/// A premium stylized confirmation dialog
+class PremiumConfirmationDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final String confirmLabel;
+  final String cancelLabel;
+  final Color confirmColor;
+  final IconData? icon;
+
+  const PremiumConfirmationDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    this.confirmLabel = 'Confirm',
+    this.cancelLabel = 'Cancel',
+    this.confirmColor = AppTheme.primary,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      titlePadding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+      title: Column(
+        children: [
+          if (icon != null) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: confirmColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: confirmColor, size: 32),
+            ),
+            const SizedBox(height: 24),
+          ],
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppTheme.textDark),
+          ),
+        ],
+      ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: AppTheme.textMid, fontSize: 15, height: 1.5),
+      ),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(cancelLabel, style: const TextStyle(color: AppTheme.textMid, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: confirmColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+

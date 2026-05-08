@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:learnyor_hrm/core/widgets/premium_widgets.dart';
 import 'package:provider/provider.dart';
 import 'theme.dart';
 import '../core/providers/auth_provider.dart';
@@ -52,26 +53,12 @@ class _ShellLayoutState extends State<ShellLayout> with SingleTickerProviderStat
   Future<void> _handleLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Sign Out?', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Are you sure you want to exit your professional session?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: AppTheme.textMid)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            child: const Text('Sign Out'),
-          ),
-        ],
+      builder: (context) => const PremiumConfirmationDialog(
+        title: 'Sign Out?',
+        message: 'Are you sure you want to exit your professional session? You will need to sign in again to access the CRM.',
+        confirmLabel: 'Sign Out',
+        confirmColor: AppTheme.error,
+        icon: Icons.logout_rounded,
       ),
     );
 

@@ -224,28 +224,24 @@ class EmployeeDetailScreen extends StatelessWidget {
     if (await canLaunchUrl(url)) await launchUrl(url);
   }
 
-  void _showDeleteDialog(BuildContext context, Employee employee) {
-    showDialog(
+  void _showDeleteDialog(BuildContext context, Employee employee) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Employee'),
-        content: Text('Are you sure you want to remove ${employee.name}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await context.read<EmployeeProvider>().deleteEmployee(employee.id);
-              if (context.mounted) {
-                Navigator.pop(context);
-                context.pop();
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
+      builder: (context) => PremiumConfirmationDialog(
+        title: 'Delete Employee Profile?',
+        message: 'Are you sure you want to remove ${employee.name}? All historical data for this employee will be permanently deleted.',
+        confirmLabel: 'Delete Permanently',
+        confirmColor: AppTheme.error,
+        icon: Icons.delete_sweep_rounded,
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      final result = await context.read<EmployeeProvider>().deleteEmployee(employee.id);
+      if (context.mounted) {
+        context.pop(); // Back to list
+      }
+    }
   }
 }
 

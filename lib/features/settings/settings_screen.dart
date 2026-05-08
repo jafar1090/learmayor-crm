@@ -242,6 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         border: Border(bottom: BorderSide(color: AppTheme.border)),
       ),
       child: ResponsiveWrapper(
+        alignment: Alignment.centerLeft,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

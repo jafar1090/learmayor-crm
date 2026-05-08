@@ -58,6 +58,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     final employeeProvider = context.watch<EmployeeProvider>();
     final internProvider = context.watch<InternProvider>();
     final attendanceProvider = context.watch<AttendanceProvider>();
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     final attendanceList = attendanceProvider.getAttendanceForDate(_selectedDate);
     // Create a map for O(1) lookup performance
@@ -69,9 +70,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
         children: [
           // Professional Header with Tabs
           Container(
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 0),
+            padding: EdgeInsets.fromLTRB(24, isMobile ? 16 : 60, 24, 0),
             color: Colors.white,
             child: ResponsiveWrapper(
+              alignment: Alignment.centerLeft,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -82,41 +84,46 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Mark Attendance', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                            Text(
+                              'Mark Attendance', 
+                              style: TextStyle(
+                                fontSize: isMobile ? 22 : 28, 
+                                fontWeight: FontWeight.bold, 
+                                color: AppTheme.textDark
+                              )
+                            ),
                             const SizedBox(height: 4),
                             Text(
-                              DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
-                              style: const TextStyle(color: AppTheme.textMid, fontSize: 16),
+                              DateFormat('EEEE, d MMMM').format(_selectedDate),
+                              style: const TextStyle(color: AppTheme.textMid, fontSize: 14),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      ElevatedButton.icon(
+                      const SizedBox(width: 8),
+                      IconButton(
                         onPressed: () => _selectDate(context),
-                        icon: const Icon(Icons.calendar_month_rounded),
-                        label: const Text('Change Date'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primary,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(0, 48), // Override global infinite width
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        icon: const Icon(Icons.calendar_month_rounded, color: AppTheme.primary),
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppTheme.primary.withOpacity(0.08),
+                          padding: const EdgeInsets.all(12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
+                        tooltip: 'Change Date',
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
                   TabBar(
                     controller: _tabController,
                     indicatorColor: AppTheme.primary,
-                    indicatorWeight: 4,
+                    indicatorWeight: 3,
                     labelColor: AppTheme.primary,
                     unselectedLabelColor: AppTheme.textLight,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     tabs: const [
-                      Tab(text: 'EMPLOYEES'),
-                      Tab(text: 'INTERNS'),
+                      Tab(text: 'Employees'),
+                      Tab(text: 'Interns'),
                     ],
                   ),
                 ],
@@ -238,22 +245,33 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? color : AppTheme.border, width: 1.5),
-          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2))] : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppTheme.textMid,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 200),
+        scale: isSelected ? 1.05 : 1.0,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? color : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? color : AppTheme.border, 
+              width: isSelected ? 2.0 : 1.5
+            ),
+            boxShadow: isSelected 
+              ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] 
+              : null,
+          ),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: TextStyle(
+              color: isSelected ? Colors.white : AppTheme.textMid,
+              fontWeight: FontWeight.bold,
+              fontSize: isSelected ? 15 : 14,
+            ),
+            child: Text(label),
           ),
         ),
       ),

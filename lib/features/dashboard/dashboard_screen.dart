@@ -338,20 +338,37 @@ class _ActivityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIntern = type == 'Intern';
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: (isIntern ? Colors.indigo : AppTheme.primary).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: BentoCard(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        borderRadius: 16,
+        onTap: () {}, // Make it interactive
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: (isIntern ? Colors.indigo : AppTheme.primary).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(isIntern ? Icons.school_rounded : Icons.person_rounded, size: 24, color: isIntern ? Colors.indigo : AppTheme.primary),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.textDark)),
+                  Text(sub, style: const TextStyle(fontSize: 12, color: AppTheme.textMid)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.border),
+          ],
         ),
-        child: Icon(isIntern ? Icons.school_rounded : Icons.person_rounded, size: 24, color: isIntern ? Colors.indigo : AppTheme.primary),
       ),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textDark)),
-      subtitle: Text(sub, style: const TextStyle(fontSize: 13, color: AppTheme.textMid)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.border),
     );
   }
 }

@@ -224,28 +224,24 @@ class InternDetailScreen extends StatelessWidget {
     if (await canLaunchUrl(url)) await launchUrl(url);
   }
 
-  void _showDeleteDialog(BuildContext context, Intern intern) {
-    showDialog(
+  void _showDeleteDialog(BuildContext context, Intern intern) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Intern'),
-        content: Text('Are you sure you want to remove ${intern.name}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await context.read<InternProvider>().deleteIntern(intern.id);
-              if (context.mounted) {
-                Navigator.pop(context);
-                context.pop();
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
+      builder: (context) => PremiumConfirmationDialog(
+        title: 'Terminate Internship?',
+        message: 'Are you sure you want to remove ${intern.name} from the directory? This will delete all their records.',
+        confirmLabel: 'Terminate',
+        confirmColor: AppTheme.error,
+        icon: Icons.person_off_rounded,
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      final result = await context.read<InternProvider>().deleteIntern(intern.id);
+      if (context.mounted) {
+        context.pop(); // Back to list
+      }
+    }
   }
 }
 
