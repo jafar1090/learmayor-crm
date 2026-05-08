@@ -71,46 +71,47 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     
+    int attempts = 0;
+    const int maxAttempts = 3;
+    
     try {
-      // First attempt with a longer timeout to handle Render cold starts
-      http.Response response;
-      try {
-        response = await http.post(
-          Uri.parse('${ApiConfig.baseUrl}/auth/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': email, 'password': password}),
-        ).timeout(const Duration(seconds: 15));
-      } catch (e) {
-        // If it fails (likely a timeout), try one more time as the server should be waking up
-        response = await http.post(
-          Uri.parse('${ApiConfig.baseUrl}/auth/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': email, 'password': password}),
-        ).timeout(const Duration(seconds: 30));
-      }
+      while (attempts < maxAttempts) {
+        attempts++;
+        try {
+          final response = await http.post(
+            Uri.parse('${ApiConfig.baseUrl}/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'password': password}),
+          ).timeout(Duration(seconds: 15 * attempts));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _token = data['token'];
-        _userName = data['name'];
-        _userEmail = data['email'];
-        
-        await _storage.write(key: 'jwt_token', value: _token);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_name', _userName!);
-        await prefs.setString('user_email', _userEmail!);
-      } else {
-        final data = jsonDecode(response.body);
-        throw Exception(data['error'] ?? 'Login failed');
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            _token = data['token'];
+            _userName = data['name'];
+            _userEmail = data['email'];
+            
+            await _storage.write(key: 'jwt_token', value: _token);
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('user_name', _userName!);
+            await prefs.setString('user_email', _userEmail!);
+            return; 
+          } else {
+            final data = jsonDecode(response.body);
+            throw Exception(data['error'] ?? 'Login failed');
+          }
+        } catch (e) {
+          if (attempts >= maxAttempts) {
+            if (e.toString().contains('TimeoutException')) {
+              throw Exception('Server is taking too long to wake up. Please check your connection or try again in a minute.');
+            }
+            rethrow;
+          }
+          await Future.delayed(const Duration(seconds: 2));
+        }
       }
-    } catch (e) {
-      if (e.toString().contains('TimeoutException')) {
-        throw Exception('Server is taking too long to wake up. Please try again in a few seconds.');
-      }
-      rethrow;
     } finally {
       _isLoading = false;
-      // We don't notify here on success to allow for Login animations
+      notifyListeners();
     }
   }
 

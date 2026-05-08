@@ -277,7 +277,18 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (_isLoading) {
-      return const Center(key: ValueKey('loading'), child: CircularProgressIndicator());
+      return Column(
+        key: const ValueKey('loading'),
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            'Waking up server...\nThis can take up to 45 seconds',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppTheme.textMid, fontSize: 13, height: 1.5),
+          ),
+        ],
+      );
     }
 
     return SizedBox(
