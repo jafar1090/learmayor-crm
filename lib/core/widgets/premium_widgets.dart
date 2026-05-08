@@ -101,6 +101,8 @@ class DetailTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -137,7 +139,9 @@ class StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color, letterSpacing: 0.5),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color, letterSpacing: 0.5),
       ),
     );
   }
@@ -266,8 +270,11 @@ class PremiumImage extends StatelessWidget {
         color: AppTheme.background,
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: isCircle ? null : BorderRadius.circular(borderRadius),
+        border: Border.all(color: AppTheme.border.withOpacity(0.5)),
       ),
-      child: Icon(Icons.person_rounded, color: AppTheme.textMid.withOpacity(0.5), size: size * 0.5),
+      child: Center(
+        child: Icon(Icons.person_rounded, color: AppTheme.textLight.withOpacity(0.5), size: size * 0.45),
+      ),
     );
   }
 }

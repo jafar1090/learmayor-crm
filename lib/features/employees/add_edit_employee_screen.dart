@@ -251,7 +251,24 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
                 label: 'Joining Date',
                 date: _joiningDate,
                 onTap: () async {
-                  final d = await showDatePicker(context: context, initialDate: _joiningDate, firstDate: DateTime(2010), lastDate: DateTime(2030));
+                  final d = await showDatePicker(
+                    context: context, 
+                    initialDate: _joiningDate, 
+                    firstDate: DateTime(2010), 
+                    lastDate: DateTime(2030),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: AppTheme.primary,
+                            onPrimary: Colors.white,
+                            onSurface: AppTheme.textDark,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
                   if (d != null) setState(() => _joiningDate = d);
                 },
               ),
